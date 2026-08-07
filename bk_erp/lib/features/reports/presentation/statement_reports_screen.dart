@@ -501,6 +501,25 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                   height: constraints.maxHeight,
                   child: Column(
                     children: [
+                      // Excel column letters row
+                      Container(
+                        height: 20,
+                        decoration: const BoxDecoration(color: Color(0xFFF0F0F0)),
+                        child: Row(
+                          children: [
+                            _excelLetterHeader('', 45),
+                            _excelLetterHeader('A', 90),
+                            _excelLetterHeader('B', 110),
+                            _excelLetterHeader('C', 160),
+                            _excelLetterHeader('D', 220),
+                            _excelLetterHeader('E', 70),
+                            _excelLetterHeader('F', 110),
+                            _excelLetterHeader('G', 100),
+                            _excelLetterHeader('H', 110),
+                            _excelLetterHeader('I', 90),
+                          ],
+                        ),
+                      ),
                       Container(
                         height: 32,
                         decoration: const BoxDecoration(
@@ -537,7 +556,7 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                                     ),
                                     child: Row(
                                       children: [
-                                        _excelCell('${index + 1}', 45, isNum: true, textColor: AppColors.textHint),
+                                        _excelCell('${index + 1}', 45, isNum: true, textColor: AppColors.textSecondary, bgColor: const Color(0xFFF0F0F0)),
                                         _excelCell(row['date'] ?? '', 90),
                                         _excelCell(row['invoice'] ?? '', 110, isBold: true, textColor: AppColors.success),
                                         _excelCell(row['customer'] ?? '', 160, isBold: true),
@@ -623,6 +642,25 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                   height: constraints.maxHeight,
                   child: Column(
                     children: [
+                      // Excel column letters row
+                      Container(
+                        height: 20,
+                        decoration: const BoxDecoration(color: Color(0xFFF0F0F0)),
+                        child: Row(
+                          children: [
+                            _excelLetterHeader('', 45),
+                            _excelLetterHeader('A', 90),
+                            _excelLetterHeader('B', 110),
+                            _excelLetterHeader('C', 160),
+                            _excelLetterHeader('D', 220),
+                            _excelLetterHeader('E', 70),
+                            _excelLetterHeader('F', 110),
+                            _excelLetterHeader('G', 100),
+                            _excelLetterHeader('H', 110),
+                            _excelLetterHeader('I', 90),
+                          ],
+                        ),
+                      ),
                       Container(
                         height: 32,
                         decoration: const BoxDecoration(
@@ -659,7 +697,7 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                                     ),
                                     child: Row(
                                       children: [
-                                        _excelCell('${index + 1}', 45, isNum: true, textColor: AppColors.textHint),
+                                        _excelCell('${index + 1}', 45, isNum: true, textColor: AppColors.textSecondary, bgColor: const Color(0xFFF0F0F0)),
                                         _excelCell(row['date'] ?? '', 90),
                                         _excelCell(row['bill'] ?? '', 110, isBold: true, textColor: AppColors.primary),
                                         _excelCell(row['supplier'] ?? '', 160, isBold: true),
@@ -670,27 +708,27 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                                         _excelCellBalance(row['balance'] ?? '', 110),
                                         _excelCellStatus(row['method'] ?? '', 90),
                                       ],
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-                      if (rows.isNotEmpty)
-                        _buildFooterRow(
-                          'TOTALS (${rows.length} Bills)',
-                          [120, 220, 70, 110, 100, 110, 90],
-                          [
-                            summary['Total Quantity'] ?? '0',
-                            summary['Total Purchases'] ?? 'Rs. 0',
-                            summary['Total Paid'] ?? 'Rs. 0',
-                            summary['Total Outstanding'] ?? 'Rs. 0',
-                          ],
+                                    )
+                                    );
+                                  },
+                                ),
                         ),
+                        if (rows.isNotEmpty)
+                          _buildFooterRow(
+                            'TOTALS (${rows.length} Bills)',
+                            [120, 220, 70, 110, 100, 110, 90],
+                            [
+                              summary['Total Quantity'] ?? '0',
+                              summary['Total Purchases'] ?? 'Rs. 0',
+                              summary['Total Paid'] ?? 'Rs. 0',
+                              summary['Total Outstanding'] ?? 'Rs. 0',
+                            ],
+                          ),
                     ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
           ),
         ),
       ],
@@ -746,6 +784,23 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                   height: constraints.maxHeight,
                   child: Column(
                     children: [
+                      // Excel column letters row
+                      Container(
+                        height: 20,
+                        decoration: const BoxDecoration(color: Color(0xFFF0F0F0)),
+                        child: Row(
+                          children: [
+                            _excelLetterHeader('', 45),
+                            _excelLetterHeader('A', 180),
+                            _excelLetterHeader('B', 90),
+                            _excelLetterHeader('C', 90),
+                            _excelLetterHeader('D', 140),
+                            _excelLetterHeader('E', 120),
+                            _excelLetterHeader('F', 130),
+                            _excelLetterHeader('G', 100),
+                          ],
+                        ),
+                      ),
                       Container(
                         height: 32,
                         decoration: const BoxDecoration(
@@ -780,7 +835,7 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                                     ),
                                     child: Row(
                                       children: [
-                                        _excelCell('${index + 1}', 45, isNum: true, textColor: AppColors.textHint),
+                                        _excelCell('${index + 1}', 45, isNum: true, textColor: AppColors.textSecondary, bgColor: const Color(0xFFF0F0F0)),
                                         _excelCell(row['supplier'] ?? '', 180, isBold: true),
                                         _excelCell(row['bills'] ?? '', 90, isNum: true),
                                         _excelCell(row['qty'] ?? '', 90, isNum: true),
@@ -859,6 +914,22 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                   height: constraints.maxHeight,
                   child: Column(
                     children: [
+                      // Excel column letters row
+                      Container(
+                        height: 20,
+                        decoration: const BoxDecoration(color: Color(0xFFF0F0F0)),
+                        child: Row(
+                          children: [
+                            _excelLetterHeader('', 45),
+                            _excelLetterHeader('A', 200),
+                            _excelLetterHeader('B', 80),
+                            _excelLetterHeader('C', 120),
+                            _excelLetterHeader('D', 130),
+                            _excelLetterHeader('E', 80),
+                            _excelLetterHeader('F', 100),
+                          ],
+                        ),
+                      ),
                       Container(
                         height: 32,
                         decoration: const BoxDecoration(
@@ -892,7 +963,7 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
                                     ),
                                     child: Row(
                                       children: [
-                                        _excelCell('${index + 1}', 45, isNum: true, textColor: AppColors.textHint),
+                                        _excelCell('${index + 1}', 45, isNum: true, textColor: AppColors.textSecondary, bgColor: const Color(0xFFF0F0F0)),
                                         _excelCell(row['product'] ?? '', 200, isBold: true),
                                         _excelCell(row['unit'] ?? '', 80),
                                         _excelCell(row['soldQty'] ?? '', 120, isNum: true),
@@ -971,6 +1042,23 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
     );
   }
 
+  Widget _excelLetterHeader(String letter, double width) {
+    return Container(
+      width: width,
+      height: 20,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        color: Color(0xFFF0F0F0),
+        border: Border(right: _gridBorder, bottom: _gridBorder),
+      ),
+      child: Text(
+        letter,
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic, color: Color(0xFF808080)),
+      ),
+    );
+  }
+
   Widget _excelHeader(String text, double width, {bool isNum = false, bool isCenter = false}) {
     return Container(
       width: width,
@@ -982,12 +1070,15 @@ class _StatementReportsScreenState extends State<StatementReportsScreen> with Si
     );
   }
 
-  Widget _excelCell(String text, double width, {bool isNum = false, bool isBold = false, Color? textColor}) {
+  Widget _excelCell(String text, double width, {bool isNum = false, bool isBold = false, Color? textColor, Color? bgColor}) {
     return Container(
       width: width,
       height: 30,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: const BoxDecoration(border: Border(right: _gridBorder)),
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: const Border(right: _gridBorder),
+      ),
       alignment: isNum ? Alignment.centerRight : Alignment.centerLeft,
       child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 11, fontWeight: isBold ? FontWeight.bold : FontWeight.w400, color: textColor ?? AppColors.textPrimary)),
     );

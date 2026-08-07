@@ -384,7 +384,56 @@ class _CreateInvoiceDialogState extends State<CreateInvoiceDialog> {
                                     value: c,
                                     child: Text('${c.name} (${c.phone.isNotEmpty ? c.phone : "No Phone"})', style: const TextStyle(fontSize: 13)),
                                   )).toList(),
-                                  onChanged: (c) => setState(() => _selectedCustomer = c),
+                                  onChanged: (c) {
+                                    if (c == null) return;
+                                    setState(() {
+                                      _selectedCustomer = c;
+                                      _items.clear();
+                                      // Auto-populate items from customer's purchased items
+                                      if (c.purchasedItems.trim().isNotEmpty) {
+                                        final productNames = c.purchasedItems
+                                            .split(',')
+                                            .map((s) => s.trim().toLowerCase())
+                                            .where((s) => s.isNotEmpty)
+                                            .toList();
+                                        for (final name in productNames) {
+                                          final match = _appData.products.where((p) => p.name.toLowerCase().contains(name)).toList();
+                                          if (match.isNotEmpty) {
+                                            final product = match.first;
+                                            _items.add(_InvoiceItem(
+                                              product: product,
+                                              quantity: c.typicalQuantity > 0 ? c.typicalQuantity : 1,
+                                              unitPrice: c.sellingRate > 0 ? c.sellingRate : product.sellingPrice,
+                                              unit: c.preferredUnit.isNotEmpty ? c.preferredUnit : product.sellingUnit,
+                                            ));
+                                          }
+                                        }
+                                      }
+                                      // Auto-set payment method & paid amount
+                                      _paymentMethod = c.paymentMethod;
+                                      if (c.paidAmount > 0) {
+                                        _paidAmountController.text = c.paidAmount.toStringAsFixed(2);
+                                      } else {
+                                        _paidAmountController.text = '';
+                                      }
+                                      // Auto-populate bank details if applicable
+                                      if (c.paymentMethod == 'Bank Transfer' || c.paymentMethod == 'Cheque') {
+                                        if (c.bankName != null && c.bankName!.isNotEmpty) {
+                                          _bankNameController.text = c.bankName!;
+                                        }
+                                        if (c.accountHolder != null && c.accountHolder!.isNotEmpty) {
+                                          _accountHolderController.text = c.accountHolder!;
+                                        }
+                                        if (c.accountNumber != null && c.accountNumber!.isNotEmpty) {
+                                          _accountNumberController.text = c.accountNumber!;
+                                        }
+                                      } else {
+                                        _bankNameController.clear();
+                                        _accountHolderController.clear();
+                                        _accountNumberController.clear();
+                                      }
+                                    });
+                                  },
                                 ),
                               ),
                             ],

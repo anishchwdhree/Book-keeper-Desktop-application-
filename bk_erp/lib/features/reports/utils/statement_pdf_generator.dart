@@ -138,22 +138,8 @@ class StatementPdfGenerator {
           final List<pw.Widget> children = [];
 
           if (headers.isNotEmpty && rows.isNotEmpty) {
-            final colWidths = _calculateColumnWidths(headers.length);
-            children.add(
-              pw.TableHelper.fromTextArray(
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8),
-                cellStyle: const pw.TextStyle(fontSize: 8),
-                headerDecoration: pw.BoxDecoration(color: lightGreenHeader),
-                headerAlignment: pw.Alignment.centerLeft,
-                cellAlignment: pw.Alignment.centerLeft,
-                headerPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                cellPadding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
-                border: pw.TableBorder.all(color: darkBorder, width: 0.5),
-                columnWidths: colWidths,
-                headers: headers.map((h) => h['label'] ?? '').toList(),
-                data: rows.map((row) => headers.map((h) => row[h['key']] ?? '').toList()).toList(),
-              ),
-            );
+            final colWidths = _calculateColumnWidths(headers);
+            children.add(_buildExcelTable(headers, rows, colWidths));
           }
 
           if (summary.isNotEmpty) {
@@ -193,12 +179,31 @@ class StatementPdfGenerator {
     return pdf.save();
   }
 
-  static Map<int, pw.FixedColumnWidth> _calculateColumnWidths(int count) {
-    final totalWidth = 520.0;
-    final perCol = totalWidth / count;
+  static Map<int, pw.FixedColumnWidth> _calculateColumnWidths(List<Map<String, String>> headers) {
+    const availableWidth = 520.0;
+    const snWidth = 22.0;
+
+    double weight(String key) {
+      switch (key) {
+        case 'date': case 'lastDate': return 50;
+        case 'invoice': case 'bill': return 55;
+        case 'customer': case 'supplier': case 'product': return 70;
+        case 'items': return 80;
+        case 'qty': case 'soldQty': case 'bills': case 'invoices': case 'unit': return 36;
+        case 'total': case 'paid': case 'balance': case 'revenue': return 50;
+        case 'status': case 'method': return 42;
+        default: return 50;
+      }
+    }
+
+    final totalWeight = headers.fold(0.0, (sum, h) => sum + weight(h['key'] ?? ''));
+    final dataArea = availableWidth - snWidth;
     final widths = <int, pw.FixedColumnWidth>{};
-    for (var i = 0; i < count; i++) {
-      widths[i] = pw.FixedColumnWidth(perCol);
+    widths[0] = pw.FixedColumnWidth(snWidth);
+    for (var i = 0; i < headers.length; i++) {
+      final w = weight(headers[i]['key'] ?? '');
+      final colW = (w / totalWeight) * dataArea;
+      widths[i + 1] = pw.FixedColumnWidth(colW);
     }
     return widths;
   }
@@ -450,5 +455,73 @@ class StatementPdfGenerator {
     };
 
     return {'headers': headers, 'rows': rows, 'summary': summary};
+  }
+
+  // ─── Excel-style table builder ───
+
+  static pw.Widget _buildExcelTable(
+    List<Map<String, String>> headers,
+    List<Map<String, String>> rows,
+    Map<int, pw.FixedColumnWidth> colWidths,
+  ) {
+    final gridColor = PdfColor.fromHex('#D5D8DF');
+    final headerBg = PdfColor.fromHex('#E4E6EA');
+    final rowNumBg = PdfColor.fromHex('#F0F0F0');
+    final altRowBg = PdfColor.fromHex('#F9FAFB');
+    final rowNumColor = PdfColor.fromHex('#666666');
+    final letterColor = PdfColor.fromHex('#808080');
+    final headerTextColor = PdfColor.fromHex('#2D3748');
+    final letters = List.generate(headers.length, (i) => String.fromCharCode(65 + i));
+
+    pw.Container _cell({
+      required double h,
+      required String t,
+      pw.Alignment a = pw.Alignment.centerLeft,
+      PdfColor? bg,
+      pw.TextStyle? s,
+    }) {
+      return pw.Container(
+        height: h,
+        alignment: a,
+        padding: const pw.EdgeInsets.symmetric(horizontal: 3),
+        decoration: pw.BoxDecoration(color: bg),
+        child: pw.Text(t, style: s ?? const pw.TextStyle(fontSize: 7.5), maxLines: 1),
+      );
+    }
+
+    final tableRows = <pw.TableRow>[];
+
+    // Column letter row (A, B, C...)
+    tableRows.add(pw.TableRow(children: [
+      _cell(h: 16, t: '', bg: rowNumBg, a: pw.Alignment.center),
+      ...letters.map((l) => _cell(h: 16, t: l, bg: rowNumBg, a: pw.Alignment.center,
+          s: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold, fontStyle: pw.FontStyle.italic, color: letterColor))),
+    ]));
+
+    // Header row
+    tableRows.add(pw.TableRow(children: [
+      _cell(h: 22, t: '#', bg: headerBg, a: pw.Alignment.center,
+          s: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 7.5, color: headerTextColor)),
+      ...headers.map((hdr) => _cell(h: 22, t: hdr['label'] ?? '', bg: headerBg,
+          s: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 7.5, color: headerTextColor))),
+    ]));
+
+    // Data rows with alternating colors
+    for (var i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      final isEven = i.isEven;
+      final rowBg = isEven ? PdfColors.white : altRowBg;
+      tableRows.add(pw.TableRow(children: [
+        _cell(h: 20, t: '${i + 1}', bg: rowNumBg, a: pw.Alignment.center,
+            s: pw.TextStyle(fontSize: 7.5, color: rowNumColor)),
+        ...headers.map((hdr) => _cell(h: 20, t: row[hdr['key']] ?? '', bg: rowBg)),
+      ]));
+    }
+
+    return pw.Table(
+      columnWidths: colWidths,
+      border: pw.TableBorder.all(color: gridColor, width: 0.5),
+      children: tableRows,
+    );
   }
 }

@@ -25,45 +25,33 @@ class _ItemsSoldScreenState extends State<ItemsSoldScreen> {
   }
 
   List<_SoldItem> get _aggregated {
-    final map = <String, _SoldItem>{};
+    final list = <_SoldItem>[];
 
     for (final sale in _appData.sales) {
       final custName = sale.customerName;
       for (final item in sale.items) {
-        final key = '${item.product.name}_${item.unit}';
-        final existing = map[key];
-        if (existing != null) {
-          existing.totalQty += item.quantity;
-          existing.totalRevenue += item.lineTotal;
-          existing.invoiceCount += 1;
-          existing.customers.add(custName);
-        } else {
-          map[key] = _SoldItem(
-            productName: item.product.name,
-            category: item.product.inventoryGroup,
-            unit: item.unit,
-            unitPrice: item.unitPrice,
-            totalQty: item.quantity,
-            totalRevenue: item.lineTotal,
-            invoiceCount: 1,
-            customers: {custName},
-          );
-        }
+        list.add(_SoldItem(
+          productName: item.product.name,
+          category: item.product.inventoryGroup,
+          unit: item.unit,
+          unitPrice: item.unitPrice,
+          totalQty: item.quantity,
+          totalRevenue: item.lineTotal,
+          invoiceCount: 1,
+          customers: {custName},
+        ));
       }
     }
 
-    var list = map.values.toList();
     list.sort((a, b) => b.totalRevenue.compareTo(a.totalRevenue));
 
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      list = list
-          .where(
-            (i) =>
-                i.productName.toLowerCase().contains(q) ||
-                i.category.toLowerCase().contains(q),
-          )
-          .toList();
+      list.retainWhere(
+        (i) =>
+            i.productName.toLowerCase().contains(q) ||
+            i.category.toLowerCase().contains(q),
+      );
     }
 
     return list;

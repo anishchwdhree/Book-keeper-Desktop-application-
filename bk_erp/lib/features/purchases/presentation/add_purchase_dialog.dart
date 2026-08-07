@@ -100,37 +100,39 @@ class _AddPurchaseDialogState extends State<AddPurchaseDialog> {
         _paymentMethod = supplier.paymentMethod.isNotEmpty ? supplier.paymentMethod : 'Cash';
       }
 
-      // Auto-populate cart with supplier's default item if cart is empty
-      if (_cartItems.isEmpty && supplier.suppliedItems.isNotEmpty) {
+      // Always clear and repopulate cart from supplier's suppliedItems
+      _cartItems.clear();
+      if (supplier.suppliedItems.isNotEmpty) {
         final items = supplier.suppliedItems.split(RegExp(r'[,;]'));
         for (final itemName in items) {
           final trimmedName = itemName.trim();
-          if (trimmedName.isNotEmpty) {
-            ProductModel resolvedProduct;
-            try {
-              resolvedProduct = _appData.products.firstWhere(
-                (p) => p.name.toLowerCase() == trimmedName.toLowerCase(),
-              );
-            } catch (_) {
-              resolvedProduct = ProductModel(
-                id: null,
-                name: trimmedName,
-                purchasePrice: supplier.defaultRate,
-                purchaseUnit: supplier.defaultUnit.isNotEmpty ? supplier.defaultUnit : 'Quintal',
-              );
-            }
+          if (trimmedName.isEmpty) continue;
 
-            final qty = supplier.defaultQty > 0 ? supplier.defaultQty : 1.0;
-            final cost = supplier.defaultRate > 0 ? supplier.defaultRate : (resolvedProduct.purchasePrice > 0 ? resolvedProduct.purchasePrice : 0.0);
-            final unit = supplier.defaultUnit.isNotEmpty ? supplier.defaultUnit : resolvedProduct.purchaseUnit;
-
-            _cartItems.add(_CartItem(
-              product: resolvedProduct,
-              quantity: qty,
-              unitCost: cost,
-              unit: unit,
-            ));
+          ProductModel resolvedProduct;
+          try {
+            resolvedProduct = _appData.products.firstWhere(
+              (p) => p.name.toLowerCase() == trimmedName.toLowerCase(),
+            );
+          } catch (_) {
+            resolvedProduct = ProductModel(
+              id: null,
+              name: trimmedName,
+              purchasePrice: supplier.defaultRate,
+              purchaseUnit: supplier.defaultUnit.isNotEmpty ? supplier.defaultUnit : 'Quintal',
+            );
           }
+
+          // Use product's own purchase values, fall back to supplier defaults
+          final qty = supplier.defaultQty > 0 ? supplier.defaultQty : 1.0;
+          final cost = resolvedProduct.purchasePrice > 0 ? resolvedProduct.purchasePrice : supplier.defaultRate;
+          final unit = resolvedProduct.purchaseUnit.isNotEmpty ? resolvedProduct.purchaseUnit : supplier.defaultUnit;
+
+          _cartItems.add(_CartItem(
+            product: resolvedProduct,
+            quantity: qty,
+            unitCost: cost,
+            unit: unit,
+          ));
         }
       }
 
@@ -369,8 +371,12 @@ class _AddPurchaseDialogState extends State<AddPurchaseDialog> {
     final supplier = _appData.suppliers.firstWhere((s) => s.id == _selectedSupplierId);
 
     // Auto-create any missing items in inventory so stock update works
+    // (guards against creating the same item twice if the cart has duplicate rows)
+    final createdNames = <String>{};
     for (final item in _cartItems) {
       if (item.product.id == null) {
+        final nameKey = item.product.name.trim().toLowerCase();
+        if (!createdNames.add(nameKey)) continue;
         final newProduct = ProductModel(
           id: _appData.nextId,
           name: item.product.name,

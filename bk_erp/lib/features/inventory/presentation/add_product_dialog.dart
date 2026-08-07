@@ -6,6 +6,7 @@ import '../models/product_model.dart';
 class _ItemSuggestion {
   final String name;
   final String buyUnit;
+  final String sellingUnit;
   final double purchaseRate;
   final double defaultQty;
   final String sourceLabel;
@@ -14,6 +15,7 @@ class _ItemSuggestion {
   _ItemSuggestion({
     required this.name,
     required this.buyUnit,
+    required this.sellingUnit,
     required this.purchaseRate,
     required this.defaultQty,
     required this.sourceLabel,
@@ -91,11 +93,14 @@ class _AddProductDialogState extends State<AddProductDialog> {
         }
         _purchaseUnit = suggestion.buyUnit;
       }
+      if (suggestion.sellingUnit.isNotEmpty) {
+        if (!_sellingUnits.contains(suggestion.sellingUnit)) {
+          _sellingUnits.add(suggestion.sellingUnit);
+        }
+        _sellingUnit = suggestion.sellingUnit;
+      }
       if (suggestion.purchaseRate > 0) {
         _purchasePriceController.text = suggestion.purchaseRate.toStringAsFixed(2);
-      }
-      if (!_isEditing && suggestion.defaultQty > 0) {
-        _currentStockController.text = suggestion.defaultQty.toStringAsFixed(0);
       }
     });
   }
@@ -115,6 +120,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
               suggestions.add(_ItemSuggestion(
                 name: trimmed,
                 buyUnit: s.defaultUnit.isNotEmpty ? s.defaultUnit : 'Quintal',
+                sellingUnit: 'Kg',
                 purchaseRate: s.defaultRate,
                 defaultQty: s.defaultQty,
                 sourceLabel: 'Supplier: ${s.name}',
@@ -132,6 +138,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
         suggestions.add(_ItemSuggestion(
           name: p.name,
           buyUnit: p.purchaseUnit,
+          sellingUnit: p.sellingUnit,
           purchaseRate: p.purchasePrice,
           defaultQty: p.currentStock,
           sourceLabel: 'Existing Product',
@@ -261,20 +268,35 @@ class _AddProductDialogState extends State<AddProductDialog> {
                       },
                       fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
                         if (textEditingController.text.isEmpty && _nameController.text.isNotEmpty) {
-                          textEditingController.text = _nameController.text;
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (mounted) {
+                              textEditingController.text = _nameController.text;
+                            }
+                          });
                         }
                         textEditingController.addListener(() {
                           _nameController.text = textEditingController.text;
-                          // Auto match if exact supplier item typed
+                          // Auto match if exact item typed
                           final matches = _getSuggestions(textEditingController.text);
                           if (matches.isNotEmpty && matches.first.name.toLowerCase() == textEditingController.text.toLowerCase().trim()) {
                             final match = matches.first;
-                            if (_purchasePriceController.text.isEmpty && match.purchaseRate > 0) {
-                              _purchasePriceController.text = match.purchaseRate.toStringAsFixed(2);
-                            }
-                            if (!_isEditing && _currentStockController.text.isEmpty && match.defaultQty > 0) {
-                              _currentStockController.text = match.defaultQty.toStringAsFixed(0);
-                            }
+                            setState(() {
+                              if (match.buyUnit.isNotEmpty) {
+                                if (!_purchaseUnits.contains(match.buyUnit)) {
+                                  _purchaseUnits.add(match.buyUnit);
+                                }
+                                _purchaseUnit = match.buyUnit;
+                              }
+                              if (match.sellingUnit.isNotEmpty) {
+                                if (!_sellingUnits.contains(match.sellingUnit)) {
+                                  _sellingUnits.add(match.sellingUnit);
+                                }
+                                _sellingUnit = match.sellingUnit;
+                              }
+                              if (_purchasePriceController.text.isEmpty && match.purchaseRate > 0) {
+                                _purchasePriceController.text = match.purchaseRate.toStringAsFixed(2);
+                              }
+                            });
                           }
                         });
                         return SizedBox(

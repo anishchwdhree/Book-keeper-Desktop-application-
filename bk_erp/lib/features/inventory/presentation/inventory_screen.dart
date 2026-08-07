@@ -102,7 +102,20 @@ class _InventoryScreenState extends State<InventoryScreen> {
         if (product != null) {
           _appData.updateProduct(result);
         } else {
-          _appData.addProduct(result);
+          // Never create a duplicate item with the same name.
+          // Stock is added through Purchases, not by re-creating the item.
+          final alreadyExists = _appData.products.any(
+            (p) => p.name.toLowerCase() == result.name.toLowerCase(),
+          );
+          if (alreadyExists) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Item "${result.name}" already exists in Inventory. Use a Purchase to add stock to it.'),
+              ),
+            );
+          } else {
+            _appData.addProduct(result);
+          }
         }
       });
     }
